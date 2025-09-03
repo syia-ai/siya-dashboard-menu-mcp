@@ -7,22 +7,30 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { TextContent } from "@modelcontextprotocol/sdk/types.js";
 import { GitHubService } from "../utils/github.js";
 import { S3Service } from "../utils/s3.js";
+import { MongoDBService } from "../utils/mongodb.js";
 import { logger } from "../utils/logger.js";
 import { 
   ToolArguments, 
   SectionAddArgs,
   SectionUpdateArgs,
   SectionDeleteArgs,
-  DashboardUploadArgs
+  DashboardUploadArgs,
+  MongoQueryArgs,
+  MongoCountArgs,
+  MongoDistinctArgs,
+  MongoAggregateArgs,
+  MongoStatsArgs
 } from "../types/index.js";
 
 export class ToolHandler {
   private githubService: GitHubService;
   private s3Service: S3Service;
+  private mongoService: MongoDBService;
 
   constructor(private server: Server) {
     this.githubService = new GitHubService();
     this.s3Service = new S3Service();
+    this.mongoService = new MongoDBService();
   }
 
   async handleCallTool(name: string, args: ToolArguments): Promise<TextContent[]> {
@@ -44,6 +52,24 @@ export class ToolHandler {
         
         case "upload_dashboard_file":
           return await this.uploadDashboardFile(args as DashboardUploadArgs);
+        
+        case "list_eta_collections":
+          return await this.listEtaCollections();
+        
+        case "query_eta_data":
+          return await this.queryEtaData(args as MongoQueryArgs);
+        
+        case "count_eta_documents":
+          return await this.countEtaDocuments(args as MongoCountArgs);
+        
+        case "get_eta_distinct_values":
+          return await this.getEtaDistinctValues(args as MongoDistinctArgs);
+        
+        case "aggregate_eta_data":
+          return await this.aggregateEtaData(args as MongoAggregateArgs);
+        
+        case "get_eta_collection_stats":
+          return await this.getEtaCollectionStats(args as MongoStatsArgs);
         
         default:
           throw new Error(`Unknown tool: ${name}`);
@@ -246,6 +272,127 @@ export class ToolHandler {
           text: `❌ Error uploading dashboard file: ${error.message}`
         }];
       }
+    }
+  }
+
+  private async listEtaCollections(): Promise<TextContent[]> {
+    try {
+      const collections = await this.mongoService.listCollections();
+      
+      return [{
+        type: "text",
+        text: `📊 **Available Collections in eta_raw_data_db:**\n\n${collections.map(col => `• ${col}`).join('\n')}\n\n**Total Collections:** ${collections.length}`
+      }];
+    } catch (error) {
+      logger.error('Error listing ETA collections', { error });
+      return [{
+        type: "text",
+        text: `❌ Error listing collections: ${error.message}`
+      }];
+    }
+  }
+
+  private async queryEtaData(args: MongoQueryArgs): Promise<TextContent[]> {
+    try {
+      const documents = await this.mongoService.findDocuments(
+        args.collection,
+        args.query || {},
+        {
+          limit: args.limit || 100,
+          skip: args.skip || 0,
+          sort: args.sort,
+          projection: args.projection
+        }
+      );
+
+      return [{
+        type: "text",
+        text: `📋 **Query Results from ${args.collection}:**\n\n**Documents Found:** ${documents.length}\n**Query:** ${JSON.stringify(args.query || {}, null, 2)}\n\n**Results:**\n\`\`\`json\n${JSON.stringify(documents, null, 2)}\n\`\`\``
+      }];
+    } catch (error) {
+      logger.error('Error querying ETA data', { error, args });
+      return [{
+        type: "text",
+        text: `❌ Error querying collection '${args.collection}': ${error.message}`
+      }];
+    }
+  }
+
+  private async countEtaDocuments(args: MongoCountArgs): Promise<TextContent[]> {
+    try {
+      const count = await this.mongoService.countDocuments(
+        args.collection,
+        args.query || {}
+      );
+
+      return [{
+        type: "text",
+        text: `🔢 **Document Count in ${args.collection}:**\n\n**Total Documents:** ${count.toLocaleString()}\n**Query:** ${JSON.stringify(args.query || {}, null, 2)}`
+      }];
+    } catch (error) {
+      logger.error('Error counting ETA documents', { error, args });
+      return [{
+        type: "text",
+        text: `❌ Error counting documents in '${args.collection}': ${error.message}`
+      }];
+    }
+  }
+
+  private async getEtaDistinctValues(args: MongoDistinctArgs): Promise<TextContent[]> {
+    try {
+      const values = await this.mongoService.getDistinctValues(
+        args.collection,
+        args.field,
+        args.query || {}
+      );
+
+      return [{
+        type: "text",
+        text: `🎯 **Distinct Values for '${args.field}' in ${args.collection}:**\n\n**Unique Values Found:** ${values.length}\n**Query:** ${JSON.stringify(args.query || {}, null, 2)}\n\n**Values:**\n\`\`\`json\n${JSON.stringify(values, null, 2)}\n\`\`\``
+      }];
+    } catch (error) {
+      logger.error('Error getting distinct ETA values', { error, args });
+      return [{
+        type: "text",
+        text: `❌ Error getting distinct values for '${args.field}' in '${args.collection}': ${error.message}`
+      }];
+    }
+  }
+
+  private async aggregateEtaData(args: MongoAggregateArgs): Promise<TextContent[]> {
+    try {
+      const results = await this.mongoService.aggregate(
+        args.collection,
+        args.pipeline
+      );
+
+      return [{
+        type: "text",
+        text: `⚡ **Aggregation Results from ${args.collection}:**\n\n**Results Count:** ${results.length}\n**Pipeline Stages:** ${args.pipeline.length}\n\n**Pipeline:**\n\`\`\`json\n${JSON.stringify(args.pipeline, null, 2)}\n\`\`\`\n\n**Results:**\n\`\`\`json\n${JSON.stringify(results, null, 2)}\n\`\`\``
+      }];
+    } catch (error) {
+      logger.error('Error aggregating ETA data', { error, args });
+      return [{
+        type: "text",
+        text: `❌ Error executing aggregation on '${args.collection}': ${error.message}`
+      }];
+    }
+  }
+
+  private async getEtaCollectionStats(args: MongoStatsArgs): Promise<TextContent[]> {
+    try {
+      const stats = await this.mongoService.getCollectionStats(args.collection);
+
+      return [{
+        type: "text",
+        text: `📊 **Collection Statistics for ${args.collection}:**\n\n• **Document Count:** ${stats.documentCount.toLocaleString()}\n• **Storage Size:** ${(stats.storageSize / 1024 / 1024).toFixed(2)} MB\n• **Average Document Size:** ${stats.avgDocumentSize} bytes\n• **Total Index Size:** ${(stats.totalIndexSize / 1024 / 1024).toFixed(2)} MB\n• **Number of Indexes:** ${stats.indexes}\n\n**Collection Name:** ${stats.name}`
+      }];
+    } catch (error) {
+      logger.error('Error getting ETA collection stats', { error, args });
+      return [{
+        type: "text",
+        text: `❌ Error getting stats for collection '${args.collection}': ${error.message}`
+      }];
     }
   }
 }

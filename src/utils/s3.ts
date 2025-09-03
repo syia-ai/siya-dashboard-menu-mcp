@@ -42,8 +42,6 @@ export class S3Service {
         Key: key,
         Body: fileContent,
         ContentType: contentType,
-        // Make the file publicly readable
-        ACL: 'public-read',
         // Add metadata
         Metadata: {
           uploadedBy: 'siya-dashboard-menu-mcp',

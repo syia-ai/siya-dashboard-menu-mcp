@@ -51,9 +51,43 @@ export interface DashboardUploadArgs {
   contentType?: string;
 }
 
+export interface MongoQueryArgs {
+  collection: string;
+  query?: any;
+  limit?: number;
+  skip?: number;
+  sort?: any;
+  projection?: any;
+}
+
+export interface MongoCountArgs {
+  collection: string;
+  query?: any;
+}
+
+export interface MongoDistinctArgs {
+  collection: string;
+  field: string;
+  query?: any;
+}
+
+export interface MongoAggregateArgs {
+  collection: string;
+  pipeline: any[];
+}
+
+export interface MongoStatsArgs {
+  collection: string;
+}
+
 export type ToolArguments = 
   | SectionAddArgs 
   | SectionUpdateArgs 
   | SectionDeleteArgs
   | DashboardUploadArgs
+  | MongoQueryArgs
+  | MongoCountArgs
+  | MongoDistinctArgs
+  | MongoAggregateArgs
+  | MongoStatsArgs
   | Record<string, any>;

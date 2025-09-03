@@ -25,6 +25,11 @@ interface Config {
     s3Bucket: string;
     s3DashboardPrefix: string;
   };
+  mongodb: {
+    uri: string;
+    database: string;
+    timeout: number;
+  };
   logging: {
     level: string;
   };
@@ -33,7 +38,8 @@ interface Config {
 function validateConfig(): Config {
   const requiredEnvVars = [
     'GITHUB_TOKEN', 'GITHUB_OWNER', 'GITHUB_REPO',
-    'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'
+    'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY',
+    'MONGODB_URI'
   ];
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
   
@@ -56,6 +62,11 @@ function validateConfig(): Config {
       region: process.env.AWS_REGION || 'ap-south-1',
       s3Bucket: process.env.S3_BUCKET || 'one-sea-etl-prod',
       s3DashboardPrefix: process.env.S3_DASHBOARD_PREFIX || 'dashboard/custom/'
+    },
+    mongodb: {
+      uri: process.env.MONGODB_URI!,
+      database: process.env.MONGODB_DATABASE || 'eta_raw_data_db',
+      timeout: parseInt(process.env.MONGODB_TIMEOUT || '30000')
     },
     logging: {
       level: process.env.LOG_LEVEL || 'info'
