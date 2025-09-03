@@ -1,0 +1,61 @@
+{
+  "name": "siya-dashboard-menu-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for managing Siya dashboard menu configuration with CRUD operations",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "siya-dashboard-menu-mcp": "bin/cli.js",
+    "mcp-dashboard-menu": "bin/cli.js"
+  },
+  "scripts": {
+    "test": "DANGEROUSLY_OMIT_AUTH=true npx @modelcontextprotocol/inspector node dist/index.js",
+    "build": "tsc && cp -r src/resources/scripts dist/resources/ 2>/dev/null || true",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "postinstall": "node install.js",
+    "prepare": "chmod +x bin/cli.js && npm run build",
+    "install-global": "npm install -g .",
+    "version-bump": "node scripts/version-bump.js"
+  },
+  "keywords": [
+    "mcp",
+    "siya",
+    "dashboard",
+    "menu",
+    "configuration",
+    "github"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/syia-ai/siya-dashboard-menu-mcp.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Prasanna",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.3",
+    "@octokit/rest": "^20.0.2",
+    "commander": "^12.1.0",
+    "dotenv": "^16.5.0",
+    "typescript": "^5.0.4",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.9",
+    "@types/winston": "^2.4.4",
+    "ts-node": "^10.9.1",
+    "tsx": "^4.19.4"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "README.md",
+    "install.js"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
