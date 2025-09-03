@@ -1,7 +1,7 @@
 {
   "name": "siya-dashboard-menu-mcp",
   "version": "1.0.0",
-  "description": "MCP server for managing Siya dashboard menu configuration with CRUD operations",
+  "description": "MCP server for managing dashboard menu sections: add, update, and remove sections via GitHub API",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
@@ -23,8 +23,11 @@
     "siya",
     "dashboard",
     "menu",
-    "configuration",
-    "github"
+    "sections",
+    "github",
+    "add-section",
+    "update-section",
+    "remove-section"
   ],
   "repository": {
     "type": "git",

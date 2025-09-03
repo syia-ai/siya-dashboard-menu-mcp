@@ -1,5 +1,6 @@
 /**
  * Resource handler for Siya Dashboard Menu MCP
+ * Section management focused resources
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -12,15 +13,15 @@ export class ResourceHandler {
   getResourceList(): Resource[] {
     return [
       {
-        uri: "dashboard://config/schema",
-        name: "Dashboard Configuration Schema",
-        description: "JSON schema for dashboard configuration structure",
+        uri: "dashboard://section/schema",
+        name: "Dashboard Section Schema",
+        description: "JSON schema for dashboard menu section structure",
         mimeType: "application/json"
       },
       {
-        uri: "dashboard://examples/client",
-        name: "Example Client Configuration",
-        description: "Example of a complete client dashboard configuration",
+        uri: "dashboard://examples/section",
+        name: "Example Menu Section",
+        description: "Example of a dashboard menu section configuration",
         mimeType: "application/json"
       }
     ];
@@ -30,75 +31,76 @@ export class ResourceHandler {
     logger.info(`Reading resource: ${uri}`);
 
     switch (uri) {
-      case "dashboard://config/schema":
+      case "dashboard://section/schema":
         return {
           contents: [
             {
               type: "text",
               text: JSON.stringify({
                 "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "Dashboard Menu Section",
                 "type": "object",
-                "patternProperties": {
-                  "^[a-zA-Z0-9_-]+$": {
-                    "type": "object",
-                    "properties": {
-                      "branding": {
-                        "type": "object",
-                        "properties": {
-                          "title": { "type": "string" },
-                          "logo": { "type": "string" },
-                          "favicon": { "type": "string" }
-                        },
-                        "required": ["title", "logo", "favicon"]
-                      },
-                      "sections": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "name": { "type": "string" },
-                            "link": { "type": "string" },
-                            "identifier": { "type": "string" },
-                            "tag": { "type": "string" }
-                          },
-                          "required": ["name", "link", "identifier", "tag"]
-                        }
-                      }
-                    },
-                    "required": ["branding", "sections"]
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Display name of the menu section"
+                  },
+                  "link": {
+                    "type": "string",
+                    "description": "URL for the menu section",
+                    "format": "uri"
+                  },
+                  "identifier": {
+                    "type": "string",
+                    "description": "Unique identifier for the section (kebab-case recommended)",
+                    "pattern": "^[a-z0-9-]+$"
+                  },
+                  "tag": {
+                    "type": "string",
+                    "description": "Section tag (usually 'object')"
                   }
-                }
+                },
+                "required": ["name", "link", "identifier", "tag"],
+                "additionalProperties": false
               }, null, 2)
             }
           ]
         };
 
-      case "dashboard://examples/client":
+      case "dashboard://examples/section":
         return {
           contents: [
             {
               type: "text",
               text: JSON.stringify({
-                "example_client": {
-                  "branding": {
-                    "title": "SIYA Dashboard - Example Client",
-                    "logo": "example-logo.png",
-                    "favicon": "example-favicon.png"
-                  },
-                  "sections": [
-                    {
-                      "name": "Home",
-                      "link": "https://example.com/home",
-                      "identifier": "home",
-                      "tag": "object"
-                    },
-                    {
-                      "name": "Analytics",
-                      "link": "https://example.com/analytics",
-                      "identifier": "analytics",
+                "example_section": {
+                  "name": "Performance Analytics",
+                  "link": "https://onesea.siya.com/analytics/performance",
+                  "identifier": "performance-analytics",
+                  "tag": "object"
+                },
+                "usage_examples": {
+                  "add_section": {
+                    "clientName": "onesea",
+                    "section": {
+                      "name": "New Feature",
+                      "link": "https://onesea.siya.com/new-feature",
+                      "identifier": "new-feature",
                       "tag": "object"
                     }
-                  ]
+                  },
+                  "update_section": {
+                    "clientName": "onesea",
+                    "identifier": "home",
+                    "updates": {
+                      "name": "Dashboard Home",
+                      "link": "https://onesea.siya.com/dashboard"
+                    }
+                  },
+                  "remove_section": {
+                    "clientName": "onesea",
+                    "identifier": "old-feature"
+                  }
                 }
               }, null, 2)
             }

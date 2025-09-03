@@ -1,5 +1,6 @@
 /**
  * Type definitions for Siya Dashboard Menu MCP
+ * Section management only
  */
 
 export interface DashboardSection {
@@ -22,22 +23,6 @@ export interface DashboardConfig {
   };
 }
 
-export interface MenuCreateArgs {
-  clientName: string;
-  branding: DashboardBranding;
-  sections?: DashboardSection[];
-}
-
-export interface MenuUpdateArgs {
-  clientName: string;
-  branding?: Partial<DashboardBranding>;
-  sections?: DashboardSection[];
-}
-
-export interface MenuDeleteArgs {
-  clientName: string;
-}
-
 export interface SectionAddArgs {
   clientName: string;
   section: DashboardSection;
@@ -55,9 +40,6 @@ export interface SectionDeleteArgs {
 }
 
 export type ToolArguments = 
-  | MenuCreateArgs 
-  | MenuUpdateArgs 
-  | MenuDeleteArgs 
   | SectionAddArgs 
   | SectionUpdateArgs 
   | SectionDeleteArgs

@@ -33,13 +33,9 @@ console.log('2. Ensure the token has repository access to syia-ai/app-insights-v
 console.log('3. Run: npm run build');
 console.log('4. Test with: npm test');
 console.log('');
-console.log('📚 Available tools:');
-console.log('- get_dashboard_config: Get current config');
-console.log('- list_clients: List all clients');
-console.log('- create_client_menu: Create new client');
-console.log('- update_client_menu: Update existing client');
-console.log('- add_menu_section: Add menu section');
-console.log('- update_menu_section: Update menu section');
-console.log('- delete_menu_section: Delete menu section');
+console.log('📚 Available tools (Section Management Only):');
+console.log('- add_menu_section: Add new section to existing client menu');
+console.log('- update_menu_section: Update existing menu section');
+console.log('- remove_menu_section: Remove section from client menu');
 console.log('');
 console.log('✨ Setup complete!');
