@@ -26,6 +26,9 @@ export class ToolHandler {
 
     try {
       switch (name) {
+        case "get_dashboard_config":
+          return await this.getDashboardConfig();
+        
         case "add_menu_section":
           return await this.addMenuSection(args as SectionAddArgs);
         
@@ -45,6 +48,14 @@ export class ToolHandler {
         text: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`
       }];
     }
+  }
+
+  private async getDashboardConfig(): Promise<TextContent[]> {
+    const config = await this.githubService.getDashboardConfig();
+    return [{
+      type: "text",
+      text: JSON.stringify(config, null, 2)
+    }];
   }
 
   private async addMenuSection(args: SectionAddArgs): Promise<TextContent[]> {

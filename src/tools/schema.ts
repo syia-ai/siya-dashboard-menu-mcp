@@ -7,6 +7,15 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 
 export const toolDefinitions: Tool[] = [
   {
+    name: "get_dashboard_config",
+    description: "Get the current complete dashboard configuration from GitHub",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      additionalProperties: false
+    }
+  },
+  {
     name: "add_menu_section",
     description: "Add a new section to a client's dashboard menu",
     inputSchema: {
