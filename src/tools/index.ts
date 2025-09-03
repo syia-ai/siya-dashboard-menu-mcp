@@ -6,19 +6,23 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { TextContent } from "@modelcontextprotocol/sdk/types.js";
 import { GitHubService } from "../utils/github.js";
+import { S3Service } from "../utils/s3.js";
 import { logger } from "../utils/logger.js";
 import { 
   ToolArguments, 
   SectionAddArgs,
   SectionUpdateArgs,
-  SectionDeleteArgs
+  SectionDeleteArgs,
+  DashboardUploadArgs
 } from "../types/index.js";
 
 export class ToolHandler {
   private githubService: GitHubService;
+  private s3Service: S3Service;
 
   constructor(private server: Server) {
     this.githubService = new GitHubService();
+    this.s3Service = new S3Service();
   }
 
   async handleCallTool(name: string, args: ToolArguments): Promise<TextContent[]> {
@@ -37,6 +41,9 @@ export class ToolHandler {
         
         case "remove_menu_section":
           return await this.removeMenuSection(args as SectionDeleteArgs);
+        
+        case "upload_dashboard_file":
+          return await this.uploadDashboardFile(args as DashboardUploadArgs);
         
         default:
           throw new Error(`Unknown tool: ${name}`);
@@ -162,5 +169,83 @@ export class ToolHandler {
       type: "text",
       text: `✅ Successfully removed section '${deletedSection.name}' from client '${args.clientName}'\n\nRemoved section details:\n- Name: ${deletedSection.name}\n- Link: ${deletedSection.link}\n- Identifier: ${deletedSection.identifier}`
     }];
+  }
+
+  private async uploadDashboardFile(args: DashboardUploadArgs): Promise<TextContent[]> {
+    try {
+      // Step 1: Validate client exists
+      const config = await this.githubService.getDashboardConfig();
+      
+      if (!config[args.clientName]) {
+        throw new Error(`Client '${args.clientName}' not found. Available clients: ${Object.keys(config).join(', ')}`);
+      }
+
+      // Step 2: Check if section identifier already exists
+      const existingSection = config[args.clientName].sections.find(
+        section => section.identifier === args.menuSection.identifier
+      );
+      
+      if (existingSection) {
+        throw new Error(`Section with identifier '${args.menuSection.identifier}' already exists in client '${args.clientName}'`);
+      }
+
+      // Step 3: Generate unique filename
+      const uniqueFileName = this.s3Service.generateUniqueFileName(args.fileName);
+      
+      // Step 4: Upload file to S3
+      const s3Url = await this.s3Service.uploadDashboardFile(
+        uniqueFileName,
+        args.fileContent,
+        args.contentType || 'text/html'
+      );
+
+      // Step 5: Create menu section with S3 URL
+      const newSection = {
+        name: args.menuSection.name,
+        link: s3Url,
+        identifier: args.menuSection.identifier,
+        tag: args.menuSection.tag
+      };
+
+      // Step 6: Add section to dashboard config
+      config[args.clientName].sections.push(newSection);
+
+      // Step 7: Commit changes to GitHub
+      await this.githubService.updateDashboardConfig(
+        config, 
+        `Add dashboard file '${args.menuSection.name}' to ${args.clientName} menu
+
+- Uploaded file: ${uniqueFileName}
+- S3 URL: ${s3Url}
+- Menu section: ${args.menuSection.name}
+- Identifier: ${args.menuSection.identifier}`
+      );
+
+      return [{
+        type: "text",
+        text: `✅ Successfully uploaded dashboard file and added menu section!\n\n📁 **File Upload:**\n- Original name: ${args.fileName}\n- Uploaded as: ${uniqueFileName}\n- S3 URL: ${s3Url}\n\n📋 **Menu Section Added:**\n- Name: ${args.menuSection.name}\n- Identifier: ${args.menuSection.identifier}\n- Client: ${args.clientName}\n- Tag: ${args.menuSection.tag}\n\n🔗 **Dashboard is now accessible via the Siya menu!**`
+      }];
+
+    } catch (error) {
+      logger.error('Error uploading dashboard file', { error, args });
+      
+      // Provide helpful error messages
+      if (error.message?.includes('AccessDenied')) {
+        return [{
+          type: "text",
+          text: `❌ Error: Access denied to S3 bucket. Please check AWS credentials and permissions.\n\nError details: ${error.message}`
+        }];
+      } else if (error.message?.includes('NoSuchBucket')) {
+        return [{
+          type: "text",
+          text: `❌ Error: S3 bucket not found. Please check the bucket name configuration.\n\nError details: ${error.message}`
+        }];
+      } else {
+        return [{
+          type: "text",
+          text: `❌ Error uploading dashboard file: ${error.message}`
+        }];
+      }
+    }
   }
 }

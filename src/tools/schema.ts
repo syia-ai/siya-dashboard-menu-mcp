@@ -89,5 +89,44 @@ export const toolDefinitions: Tool[] = [
       required: ["clientName", "identifier"],
       additionalProperties: false
     }
+  },
+  {
+    name: "upload_dashboard_file",
+    description: "Upload an HTML dashboard file to S3 and add it as a menu section",
+    inputSchema: {
+      type: "object",
+      properties: {
+        clientName: {
+          type: "string",
+          description: "Name of the client to add the dashboard to (e.g., 'onesea')"
+        },
+        fileName: {
+          type: "string",
+          description: "Name for the dashboard file (will be made unique automatically)"
+        },
+        fileContent: {
+          type: "string",
+          description: "HTML content of the dashboard file"
+        },
+        menuSection: {
+          type: "object",
+          properties: {
+            name: { type: "string", description: "Display name for the menu section" },
+            identifier: { type: "string", description: "Unique identifier (kebab-case)" },
+            tag: { type: "string", description: "Section tag (usually 'object')" }
+          },
+          required: ["name", "identifier", "tag"],
+          additionalProperties: false,
+          description: "Menu section details (link will be auto-generated from S3 URL)"
+        },
+        contentType: {
+          type: "string",
+          description: "Content type of the file (default: 'text/html')",
+          default: "text/html"
+        }
+      },
+      required: ["clientName", "fileName", "fileContent", "menuSection"],
+      additionalProperties: false
+    }
   }
 ];

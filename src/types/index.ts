@@ -39,8 +39,21 @@ export interface SectionDeleteArgs {
   identifier: string;
 }
 
+export interface DashboardUploadArgs {
+  clientName: string;
+  fileName: string;
+  fileContent: string;
+  menuSection: {
+    name: string;
+    identifier: string;
+    tag: string;
+  };
+  contentType?: string;
+}
+
 export type ToolArguments = 
   | SectionAddArgs 
   | SectionUpdateArgs 
   | SectionDeleteArgs
+  | DashboardUploadArgs
   | Record<string, any>;

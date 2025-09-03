@@ -18,13 +18,23 @@ interface Config {
     repo: string;
     configPath: string;
   };
+  aws: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+    s3Bucket: string;
+    s3DashboardPrefix: string;
+  };
   logging: {
     level: string;
   };
 }
 
 function validateConfig(): Config {
-  const requiredEnvVars = ['GITHUB_TOKEN', 'GITHUB_OWNER', 'GITHUB_REPO'];
+  const requiredEnvVars = [
+    'GITHUB_TOKEN', 'GITHUB_OWNER', 'GITHUB_REPO',
+    'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'
+  ];
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
   
   if (missingVars.length > 0) {
@@ -39,6 +49,13 @@ function validateConfig(): Config {
       owner: process.env.GITHUB_OWNER!,
       repo: process.env.GITHUB_REPO!,
       configPath: process.env.GITHUB_CONFIG_PATH || 'dashboard-config.json'
+    },
+    aws: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      region: process.env.AWS_REGION || 'ap-south-1',
+      s3Bucket: process.env.S3_BUCKET || 'one-sea-etl-prod',
+      s3DashboardPrefix: process.env.S3_DASHBOARD_PREFIX || 'dashboard/custom/'
     },
     logging: {
       level: process.env.LOG_LEVEL || 'info'

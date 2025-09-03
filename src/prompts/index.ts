@@ -17,14 +17,14 @@ export class PromptHandler {
         description: "Comprehensive guide for managing dashboard menu sections",
         arguments: [
           {
-            name: "operation",
-            description: "Operation type: add, update, or remove",
-            required: false
+            name: "sectionName",
+            description: "Name of the section (e.g., 'Performance Analytics')",
+            required: true
           },
           {
-            name: "clientName",
-            description: "Name of the client (e.g., onesea)",
-            required: false
+            name: "operation",
+            description: "Operation type: add, update, or remove",
+            required: true
           }
         ]
       },
@@ -41,11 +41,11 @@ export class PromptHandler {
 
     switch (name) {
       case "section_management_guide":
-        const operation = args?.operation || "all";
-        const clientName = args?.clientName || "onesea";
+        const operation = args?.operation || "add";
+        const sectionName = args?.sectionName || "Performance Analytics";
         
         return {
-          description: `Guide for ${operation === 'all' ? 'all section management operations' : operation + 'ing dashboard menu sections'}`,
+          description: `Guide for ${operation}ing dashboard menu section: ${sectionName}`,
           messages: [
             {
               role: "user",
@@ -53,7 +53,7 @@ export class PromptHandler {
                 type: "text",
                 text: `# Dashboard Menu Section Management Guide
 
-## Available Operations
+## Managing Section: "${sectionName}"
 
 ### 🔹 **ADD SECTION**
 Add a new menu section to an existing client dashboard.
@@ -63,11 +63,11 @@ Add a new menu section to an existing client dashboard.
 **Example:**
 \`\`\`json
 {
-  "clientName": "${clientName}",
+  "clientName": "onesea",
   "section": {
-    "name": "Performance Analytics",
-    "link": "https://${clientName}.siya.com/analytics",
-    "identifier": "performance-analytics",
+    "name": "${sectionName}",
+    "link": "https://onesea.siya.com/analytics",
+    "identifier": "${sectionName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')}",
     "tag": "object"
   }
 }
@@ -81,11 +81,11 @@ Update an existing menu section's properties.
 **Example:**
 \`\`\`json
 {
-  "clientName": "${clientName}",
-  "identifier": "home",
+  "clientName": "onesea",
+  "identifier": "${sectionName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')}",
   "updates": {
-    "name": "Dashboard Home",
-    "link": "https://${clientName}.siya.com/dashboard"
+    "name": "${sectionName}",
+    "link": "https://onesea.siya.com/updated-link"
   }
 }
 \`\`\`
@@ -98,8 +98,8 @@ Remove a menu section from the client dashboard.
 **Example:**
 \`\`\`json
 {
-  "clientName": "${clientName}",
-  "identifier": "old-feature"
+  "clientName": "onesea",
+  "identifier": "${sectionName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')}"
 }
 \`\`\`
 
